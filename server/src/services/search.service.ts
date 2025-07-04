@@ -105,10 +105,15 @@ export class SearchService extends BaseService {
     const key = machineLearning.clip.modelName + dto.query + dto.language;
     let embedding = this.embeddingCache.get(key);
     if (!embedding) {
-      embedding = await this.machineLearningRepository.encodeText(machineLearning.urls, dto.query, {
-        modelName: machineLearning.clip.modelName,
-        language: dto.language,
-      });
+      // Turn ~<uuid> queries into a search for similar assets
+      if (dto.query.match(/^~[0-9a-f]{8}-[0-9a-f]{4}-[4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)) {
+        embedding = await this.searchRepository.getAssetEmbedding(dto.query.substring(1));
+      } else {
+        embedding = await this.machineLearningRepository.encodeText(machineLearning.urls, dto.query, {
+          modelName: machineLearning.clip.modelName,
+          language: dto.language,
+        });
+      }
       this.embeddingCache.set(key, embedding);
     }
     const page = dto.page ?? 1;

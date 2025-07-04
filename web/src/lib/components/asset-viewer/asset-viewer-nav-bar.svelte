@@ -27,6 +27,7 @@
   import { getAssetJobName, getSharedLink } from '$lib/utils';
   import { canCopyImageToClipboard } from '$lib/utils/asset-utils';
   import { openFileUploadDialog } from '$lib/utils/file-uploader';
+  import { getMetadataSearchQuery } from '$lib/utils/metadata-search';
   import { toTimelineAsset } from '$lib/utils/timeline-util';
   import {
     AssetJobName,
@@ -47,6 +48,7 @@
     mdiHeadSyncOutline,
     mdiImageRefreshOutline,
     mdiImageSearch,
+    mdiMagnifyExpand,
     mdiMagnifyMinusOutline,
     mdiMagnifyPlusOutline,
     mdiPresentationPlay,
@@ -180,6 +182,12 @@
         {#if showDownloadButton}
           <DownloadAction asset={toTimelineAsset(asset)} menuItem />
         {/if}
+
+        <MenuOption
+          icon={mdiMagnifyExpand}
+          text={$t('find_similar')}
+          onClick={() => goto(`${AppRoute.SEARCH}?${getMetadataSearchQuery({query: '~' + (stack?.primaryAssetId ?? asset.id)})}`)}
+        />
 
         {#if !isLocked}
           {#if asset.isTrashed}

@@ -8,7 +8,7 @@ import { AssetStatus, AssetType, AssetVisibility, VectorIndex } from 'src/enum';
 import { probes } from 'src/repositories/database.repository';
 import { DB } from 'src/schema';
 import { AssetExifTable } from 'src/schema/tables/asset-exif.table';
-import { anyUuid, searchAssetBuilder } from 'src/utils/database';
+import { anyUuid, asUuid, searchAssetBuilder } from 'src/utils/database';
 import { paginationHelper } from 'src/utils/pagination';
 import { isValidInteger } from 'src/validation';
 
@@ -399,6 +399,17 @@ export class SearchRepository {
       .values({ assetId, embedding })
       .onConflict((oc) => oc.column('assetId').doUpdateSet((eb) => ({ embedding: eb.ref('excluded.embedding') })))
       .execute();
+  }
+
+  @GenerateSql({ params: [DummyValue.STRING] })
+  async getAssetEmbedding(assetId: string) {
+    const res = await this.db
+      .selectFrom('smart_search')
+      .select('smart_search.embedding')
+      .where('smart_search.assetId', '=', asUuid(assetId))
+      .executeTakeFirstOrThrow();
+
+    return res.embedding;
   }
 
   async getCountries(userIds: string[]): Promise<string[]> {
